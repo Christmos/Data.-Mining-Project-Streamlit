@@ -12,7 +12,7 @@ st.subheader("Exmaples of using various widgets on the sidebar")
 #read in the file
 movies_data = st.cache_data(pd.read_csv)("https://raw.githubusercontent.com/danielgrijalva/movie-stats/7c6a562377ab5c91bb80c405be50a0494ae8e582/movies.csv")
 movies_data.info()
-# movies_data = movies_data.dropna()
+movies_data = movies_data.dropna()
 movies_data['success'] = movies_data["gross"] > movies_data['budget']
 movies_data.rating = movies_data.rating.replace('Unrated', 'Not Rated')
 
@@ -60,8 +60,8 @@ year_info = (movies_data['year'].between(*new_year))
 #Configure the selectbox and multiselect widget for interactivity
 filtering = (movies_data['rating'] == new_rating_list) & (movies_data['country'].isin(new_country_list)) & (movies_data['genre'].isin(new_genre_list)) & score_info & year_info & (movies_data['success'] == new_success)
 
-# if st.checkbox('Show dataframe'):
-#    st.write(movies_data)
+if st.checkbox('Show dataframe'):
+   st.write(movies_data)
 
 # Visualization section
 
@@ -70,20 +70,22 @@ col4, col5 = st.columns([4,6])
 
 with col1:
     st.write("""🎥 Movies""")
-    movies_update = movies_data[filtering][['name', 'star', 'score']]
+    movies_update = movies_data[filtering][['name','score']]
     # movies_update = movies_update.reset_index()
     st.dataframe(movies_update.nlargest(columns='score', n=50), width = 400, hide_index=True)
-
+    
 with col2:
-    st.write("""📽️Movie Votes Over Time""")
-    st.line_chart(movies_data[filtering].groupby('year')['votes'].sum().reset_index(), x='year', y='votes', color='#ffaa0088')
+    st.write("""📽️Top production company""")
+    fig = px.pie(movies_data[filtering].nlargest(columns='gross', n=5),
+    names="company", values="gross", color="company", hover_name="country")
+    st.plotly_chart(fig, theme="streamlit", use_container_width=True)
 
 
 with col3:
     st.write("""💸Relationship between budgets and ratings""")
-    fig = px.scatter(movies_data[filtering],
+    fig1 = px.scatter(movies_data[filtering],
     x="budget", y="score", size="gross", color="country", hover_name="name")
-    st.plotly_chart(fig, theme="streamlit", use_container_width=True)
+    st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
 
 with col4:
     st.write("""🎭Top Stars""")
